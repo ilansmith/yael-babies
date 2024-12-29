@@ -129,8 +129,10 @@ public class Date {
     }
 
     public String toString() {
-        return new String((_day < 10 ? "0" : "") + _day + "/" +
-            (_month < 10 ? "0" : "") + _month + "/" + _year);
+        String s = (_day < 10 ? "0" : "") + _day + "/" +
+            (_month < 10 ? "0" : "") + _month + "/" + _year;
+
+        return s;
     }
 
     /* Private Methods */
