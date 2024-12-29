@@ -6,15 +6,43 @@ public class Date {
     private int _month;
     private int _year;
 
+    /* Constants */
+    private static final int JANUARY = 1;
+    private static final int FEBRUARY = 2;
+    private static final int DECEMBER = 12;
+    private static final int YEARS_START = 1000;
+    private static final int YEARS_END = 9999;
+    private static final int DEFAULT_DAY = 1;
+    private static final int DEFAULT_MONTH = 1;
+    private static final int DEFAULT_YEAR = 2024;
+    private static final int[] DAYS_IN_MONTH = {
+        31, /* January */
+        28, /* February (special case, is 29 in leap-years) */
+        31, /* March */
+        30, /* April */
+        31, /* May */
+        30, /* June */
+        31, /* July */
+        31, /* August */
+        30, /* September */
+        31, /* October */
+        30, /* November */
+        31, /* December */
+    };
+
     /* Constructors */
     public Date() {
-        _day = 1;
-        _month = 1;
-        _year = 2024;
+        setDefaultDate();
     }
 
     public Date(int day, int month, int year) {
-        // TBD (requires validation)
+        if (isValidDate(day, month, year)) {
+            _day = day;
+            _month = month;
+            _year = year;
+        } else {
+            setDefaultDate();
+        }
     }
 
     public Date(Date other) {
@@ -38,19 +66,22 @@ public class Date {
 
     /* Setters */
     public void setDay(int dayToSet) {
-        // TBD (requires validation)
+        if (isValidDate(dayToSet, _month, _year) == false)
+            return;
 
         _day = dayToSet;
     }
 
     public void setMonth(int monthToSet) {
-        // TBD (requires validation)
+        if (isValidDate(_day, monthToSet, _year) == false)
+            return;
 
         _month = monthToSet;
     }
 
     public void setYear(int yearToSet) {
-        // TBD (requires validation)
+        if (isValidDate(_day, _month, yearToSet) == false)
+            return;
 
         _year = yearToSet;
     }
@@ -60,10 +91,21 @@ public class Date {
         return other._year == _year &&
                 other._month == _month &&
                 other._day == _day;
+
     }
 
     public boolean before(Date other) {
-        return false; // TBD
+        if (_year < other._year)
+            return true;
+        if (other._year < _year)
+            return false;
+
+        if (_month < other._month)
+            return true;
+        if (other._month < _month)
+            return false;
+
+        return _day < other._day;
     }
 
     public boolean after(Date other) {
@@ -71,18 +113,55 @@ public class Date {
     }
 
     public int difference(Date other) {
-        return 0; // TBD
+        int daysThis = calculateDaysSinceZero(_day, _month, _year);
+        int daysOther = calculateDaysSinceZero(other._day, other._month, other._year);
+
+        return daysThis < daysOther ?
+            daysOther - daysThis :
+            daysThis - daysOther;
     }
 
     public Date tomorrow() {
-        return null; // TBD
+        int maxDay;
+        Date tomorrow = new Date(this);
+
+        if (_month == FEBRUARY)
+            maxDay = isLeapYear(_year) ? 29 : 28;
+        else
+            maxDay = DAYS_IN_MONTH[_month - 1];
+
+        if (_day < maxDay) {
+            tomorrow._day += 1;
+        } else {
+            tomorrow._day = 1;
+
+            if (tomorrow._month < DECEMBER) {
+                tomorrow._month += 1;
+            } else {
+                tomorrow._month = JANUARY;
+
+                if (tomorrow._year < YEARS_END)
+                    tomorrow._year += 1;
+                else
+                    tomorrow.setDefaultDate();
+            }
+        }
+
+        return tomorrow;
     }
 
     public String toString() {
-        return null; // TBD
+        return new String((_day < 10 ? "0" : "") + _day + "/" +
+            (_month < 10 ? "0" : "") + _month + "/" + _year);
     }
 
     /* Private Methods */
+    private void setDefaultDate() {
+        _day = DEFAULT_DAY;
+        _month = DEFAULT_MONTH;
+        _year = DEFAULT_YEAR;
+    }
+
     // computes the day number since the beginning of the Christian counting of years
     private int calculateDaysSinceZero(int day, int month, int year) {
         if (month < 3) {
@@ -95,5 +174,16 @@ public class Date {
     // checks if the year is a leap year
     private boolean isLeapYear(int year) {
         return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+    }
+
+    private boolean isValidDate(int day, int month, int year) {
+        if (day < 1 || month < JANUARY || DECEMBER < month || year < YEARS_START || YEARS_END < year) {
+            return false;
+        }
+
+        if (month == FEBRUARY)
+            return day <= (isLeapYear(year) ? 29 : 28);
+
+        return day <= DAYS_IN_MONTH[month - 1];
     }
 }
